@@ -11,11 +11,10 @@
             <div class="rouImg">
                 <img src='@/assets/map/route_zh.png' alt="">    
             </div>
-            <div class="Router">
-
-            </div>
         </div>
     </div>
+
+    <div class="Router"></div>
   </div>
 </template>
 
@@ -98,5 +97,11 @@
 }
 .routerImg>div{
     width: 100%;
+}
+
+.Router{
+    width: 100%;
+    height: 100%;
+    background: black;
 }
 </style>

@@ -17,7 +17,9 @@ export function createIcons(coords,pointImageUrl){
         ),
         zIndex: 100,
         expandZoomRange:true,
-        zooms:[16, 20]
+        zooms:[16, 1000],
+        zoomEnable:false,
+        dragEnable: false, 
     });
     var map = new AMap.Map('container', {
         resizeEnable: true,
@@ -72,7 +74,6 @@ export function createIcons(coords,pointImageUrl){
         animation:'AMAP_ANIMATION_BOUNCE'
     });
     map.add([startMarker]);
-  
 
     //  循环创建icon
     function IconCreate(cods){
@@ -88,6 +89,44 @@ export function createIcons(coords,pointImageUrl){
         size: new AMap.Size(25, 40),
         imageSize: new AMap.Size(25, 25),
       });
+      // 自定义路径
+      function pathLength(){ 
+        var arr=new Array();//经纬度坐标数组 
+        arr.push(new AMap.LngLat("110.059519","18.453242")); 
+        arr.push(new AMap.LngLat("110.059807","18.453261")); 
+        arr.push(new AMap.LngLat("110.060091","18.453485")); 
+        arr.push(new AMap.LngLat("110.060472","18.453678")); 
+        arr.push(new AMap.LngLat("110.06051","18.453795")); 
+        arr.push(new AMap.LngLat("110.061041","18.453826")); 
+        arr.push(new AMap.LngLat("110.061196","18.454258")); 
+        arr.push(new AMap.LngLat("110.061497","18.454564")); 
+        arr.push(new AMap.LngLat("110.061695","18.454742"));
+        arr.push(new AMap.LngLat("110.06133","18.455546"));
+
+
+        arr.push(new AMap.LngLat("110.060826","18.455729")); 
+        
+        //定义折线对象
+        var polyline=new AMap.Polyline({
+            path:arr,     //设置折线的节点数组
+            strokeColor:"red",
+            strokeOpacity:1,
+            strokeWeight:6,
+            strokeDasharray:[10,5]
+        }); 
+        
+        polyline.setMap(map);//地图上添加折线 
+        
+        var distance = Math.round(AMap.GeometryUtil.distanceOfLine(arr));
+        var text = new AMap.Text({
+            position: new AMap.LngLat(110.063186,18.455683),
+            text: '折线长' + distance + '米',
+            offset: new AMap.Pixel(-20, -20)
+        })
+        map.add(text);
+    }
+  
+    pathLength();
 
 
       let oldSiteX = ''
@@ -194,7 +233,40 @@ export function createIcons(coords,pointImageUrl){
             // map.setCenter([cod[0],cod[1]])
         })  
         //点击事件的结束
+
+        // map.plugin('AMap.Walking',function(){
+        //   //步行导航
+        //   var walking = new AMap.Walking({
+        //       map: map,
+        //       panel: "panel"
+        //   }); 
+        //   //根据起终点坐标规划步行路线
+        //   walking.search([110.05595,18.451149], [110.055945,18.449953], function(status, result) {
+        //       // result即是对应的步行路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_WalkingResult
+        //       if (status === 'complete') {
+        //           // log.success('绘制步行路线完成')
+        //       } else {
+        //           // log.error('步行路线数据查询失败' + result)
+        //       } 
+        //   });
+        //  });
+        
+
+        // AMap.service('AMap.Walking',function(){
+        //   let MWalk = new AMap.Walking({
+        //     map : map
+        //   })
+        //   MWalk.search([110.059519,18.453242], [110.060826,18.455729], function(status, result) {})
+        // })
+
+        
       });
     }
     IconCreate(cods)
+    
+}
+
+// 弹出路径选择框
+export function selectPath(){
+
 }
