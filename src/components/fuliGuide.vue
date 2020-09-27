@@ -66,16 +66,81 @@ export default {
     };
   },
   methods: {
+    getLocation(){
+       let that=this
+       wx.ready(function(res) {
+          wx.getLocation({
+              type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+              success: function (res){
+                  // alert('进入成功');
+                  console.log(res)
+                  // alert(res.data.data.latitude+'位置')
+                  let latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+                  let longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+                  // var speed = res.speed; // 速度，以米/每秒计
+                  // var accuracy = res.accuracy; // 位置精度
+                  // console.log(latitude + ',' + longitude)
+                  // that.address =longitude+','+latitude
+                  // that.getLIst(longitude,latitude)
+                  // that.addressFun(latitude,longitude)
+
+                  var startIcon = new AMap.Icon({ // 创建一个 icon
+                      size: new AMap.Size(25, 38),
+                      image: require('@/assets/map/my_location.png'),
+                      imageSize: new AMap.Size(25, 38),
+                  });
+                  var Label = {
+                      offset: new AMap.Pixel(0, 0),
+                      content: '您当前所在位置',
+                      direction: "top",
+                      anchor:'bottom-center'
+                    };
+                  var startMarker = new AMap.Marker({
+                      // position: new AMap.LngLat(longitude,latitude),
+                      position: new AMap.LngLat(108.38704,22.787328),
+                      icon: startIcon,
+                      // offset: new AMap.Pixel(-13, -30),
+                      label: Label,
+                      animation:'AMAP_ANIMATION_BOUNCE'
+                  });
+                  that._map.add([startMarker]);
+                  //步行导航
+                  alert('55555')
+
+                  // _map.plugin('AMap.Walking',function(){
+                  //   var walking = new AMap.Walking({
+                  //       map: _this._map,
+                  //       panel: "panel"
+                  //   }); 
+                  //   console.log(_this.comeSite)
+                  //   //根据起终点坐标规划步行路线
+                  //   walking.search([longitude, latitude], [that.comeSite[0][0], that.comeSite[0][1]], function(status, result) {
+                  //       // // result即是对应的步行路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_WalkingResult
+                  //       // if (status === 'complete') {
+                  //       //     log.success('绘制步行路线完成')
+                  //       // } else {
+                  //       //     log.error('步行路线数据查询失败' + result)
+                  //       // } 
+                  //   });
+                  // })
+              },
+              fail: function(err) {
+              },
+              cancel: function (res){
+                alert('')
+              }
+          });
+        })
+    },
+    // 路线导航的出现
     routerIsShow:function(){
         this.routerShow = !this.routerShow;
     },
+    
     positionting:function(index){
-        console.log('进入定位')
-        console.log(this.audioList)
-        console.log(this.audioList[index].audioUrl)
         this.audio_url = this.audioList[index].audioUrl
     },
-      //  循环创建icon
+    // 循环创建icon
     IconCreate(coords,map,elementExhGuid){
       // console.log(coords[0][0])
       // 清除标记点      
@@ -118,6 +183,7 @@ export default {
         //     return endIcon
         //   }
         // }
+        
         // 旅游景点标注
         var markerlabel = {
           offset: new AMap.Pixel(0,0),
@@ -320,13 +386,13 @@ export default {
   beforeCreate(){
       let data={
         bsCode: this.$cookie.getCookie("bsCode"),
-        url: encodeURIComponent(window.location.href),
+        url: window.location.href.split("#")[0]
       }
       let _this = this
       getWXconfig2020(data).then((res)=>{
         console.log(res)
         wx.config({
-            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
             appId: res.data.data.appId, // 必填，企业号的唯一标识，此处填写企业号corpid
             timestamp: res.data.data.timestamp, // 必填，生成签名的时间戳
             nonceStr: res.data.data.nonceStr, // 必填，生成签名的随机串
@@ -337,68 +403,25 @@ export default {
                 'getLocation'
             ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录3
         });
-        //"errMsg":"getLocation:invalid signture"
-        wx.ready(function(res) {
-          wx.getLocation({
-              type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
-              success: function (res){
-                  alert('进入成功');
-                  console.log(res)
-                  // alert(res.data.data.latitude+'位置')
-                  let latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
-                  let longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
-                  var speed = res.speed; // 速度，以米/每秒计
-                  var accuracy = res.accuracy; // 位置精度
-                  console.log(latitude + ',' + longitude)
-                  that.address =longitude+','+latitude
-                  that.getLIst(longitude,latitude)
-                  that.addressFun(latitude,longitude)
-                  var startIcon = new AMap.Icon({ // 创建一个 icon
-                      size: new AMap.Size(25, 38),
-                      image: require('@/assets/map/my_location.png'),
-                      imageSize: new AMap.Size(25, 38),
-                  });
-                  var Label = {
-                      offset: new AMap.Pixel(0, 0),
-                      content: '您当前所在位置',
-                      direction: "top",
-                      anchor:'bottom-center'
-                    };
-                  var startMarker = new AMap.Marker({
-                      position: new AMap.LngLat(longitude,latitude),
-                      icon: startIcon,
-                      // offset: new AMap.Pixel(-13, -30),
-                      label: Label,
-                      animation:'AMAP_ANIMATION_BOUNCE'
-                  });
-                  _this._map.add([startMarker]);
-                  //步行导航
-
-                  _map.plugin('AMap.Walking',function(){
-                    var walking = new AMap.Walking({
-                        map: _this._map,
-                        panel: "panel"
-                    }); 
-                    console.log(_this.comeSite)
-                    //根据起终点坐标规划步行路线
-                    walking.search([longitude, latitude], [_this.comeSite[0][0], _this.comeSite[0][1]], function(status, result) {
-                        // // result即是对应的步行路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_WalkingResult
-                        // if (status === 'complete') {
-                        //     log.success('绘制步行路线完成')
-                        // } else {
-                        //     log.error('步行路线数据查询失败' + result)
-                        // } 
-                    });
-                  })
-              },
-              fail: function(err) {
-                alert("获取定位位置信息失败！")
-              },
-              cancel: function (res){
-                alert('')
-              }
-          });
-        })
+        //"errMsg":"getLocation:invalid signature"
+        // wx.ready(function(res) {
+        //   wx.getLocation({
+        //       type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+        //       success: function (res){
+        //           alert('进入成功');
+        //           console.log(res,999999999999999)
+        //       },
+        //       fail: function(err) {
+        //         alert('进入失败a');
+        //       },
+        //       cancel: function (res){
+        //       }
+        //   });
+        // });
+        wx.error(function(res){
+          // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
+          console.log(res)
+        });
       })
   },
   mounted(){
@@ -477,14 +500,18 @@ export default {
       });
     })
     
-
-      //   以下定位可以直接用
-      //   //encodeURIComponent(window.location.href) 动态获取地址
-      //   //'http://pjtdl.piaojingtong.net/' 这个是固定地址，本地调试用
-      //   getPosition('f986ecacb0d0ecdb426e83084e8d77662543',encodeURIComponent(window.location.href)).then(res=>{  // 改本地调试记得改地址
+    this.getLocation()
+        // 以下定位可以直接用
+        //encodeURIComponent(window.location.href) 动态获取地址
+        //'http://pjtdl.piaojingtong.net/' 这个是固定地址，本地调试用
+      //   let data = {
+      //     bsCode:this.$cookie.getCookie("bsCode"),
+      //     url:window.location.href.split("#")[0]
+      //   }
+      //   getWXconfig2020(data).then(res=>{  // 改本地调试记得改地址
       //   console.log(res)
       //     wx.config({
-      //       debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+      //       debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
       //       appId: res.data.data.appId, // 必填，企业号的唯一标识，此处填写企业号corpid
       //       timestamp: res.data.data.timestamp, // 必填，生成签名的时间戳
       //       nonceStr: res.data.data.nonceStr, // 必填，生成签名的随机串
@@ -494,22 +521,22 @@ export default {
       //           'openLocation',
       //           'getLocation'
       //       ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录3
-      //   });
+      //     });
       //     wx.ready(function(res) {
-      //     wx.getLocation({
+      //       wx.getLocation({
       //         type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
       //         success(res) {
       //             alert('进入成功');
       //             console.log(res)
-      //             // alert(res.data.data.latitude+'位置')
-      //             let latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
-      //             let longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
-      //             var speed = res.speed; // 速度，以米/每秒计
-      //             var accuracy = res.accuracy; // 位置精度
-      //             console.log(latitude + ',' + longitude)
-      //             //that.address =longitude+','+latitude
-      //             that.getLIst(longitude,latitude)
-      //             that.addressFun(latitude,longitude)
+      //             // // alert(res.data.data.latitude+'位置')
+      //             // let latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+      //             // let longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+      //             // var speed = res.speed; // 速度，以米/每秒计
+      //             // var accuracy = res.accuracy; // 位置精度
+      //             // console.log(latitude + ',' + longitude)
+      //             // //that.address =longitude+','+latitude
+      //             // that.getLIst(longitude,latitude)
+      //             // that.addressFun(latitude,longitude)
       //         },
       //         fail: function(err) {
       //           alert("获取定位位置信息失败！")
@@ -520,12 +547,10 @@ export default {
       //     });
       //   })
       //   wx.error(function(res){
-      //     // console.log(res)
+      //     console.log(res)
       //     // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
       //   });
-      // })
-
-    
+      // }) 
   }
 };
 </script>

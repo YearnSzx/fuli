@@ -41,7 +41,7 @@ import wx from 'weixin-js-sdk'
         // 判断是否是从微信回来，如果是，code就不会为null
         if(code==null&&this.$cookie.getCookie("token")==''||this.$cookie.getCookie("token")==null||this.$cookie.getCookie("token")==undefined){
             // let bsCode = 42309967
-            console.log('先进到这里')
+            // console.log('先进到这里')
             let data={
                 bsCode: this.getUrlKey('bsCode'), 
                 url: encodeURIComponent(window.location.href)
@@ -77,7 +77,7 @@ import wx from 'weixin-js-sdk'
             }
             console.log(1111)
             getToken(data).then(res=>{
-                alert('进到个人信息了')
+                // alert('进到个人信息了')
                 if(res.data.code == 200){
                     console.log('getToken接口：')
                     console.log(res)
