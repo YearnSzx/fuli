@@ -25,47 +25,52 @@
 </template>
 
 <script>
-
+// import {getLocation} from '../../utils/index'
+// import {getPosition} from '../../utils/index'
+import wx from 'weixin-js-sdk'
   export default {
     name : 'foot',
     data () {
       return {
-          routerShow:true
+          routerShow:false
       };
     },
-
     computed: {},
-
     beforeMount() {},
-
-    mounted() {},
-
+    mounted() {
+        
+    },
     methods: {
         routerIsShow:function(){
             this.routerShow = !this.routerShow;
         },
         positionting:function(){
-            console.log(123456)
-            wx.getLocation({
-            type: 'gcj02', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
-            success: function (res) {
-                // alert(res);
-                var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
-                var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
-                var speed = res.speed; // 速度，以米/每秒计
-                var accuracy = res.accuracy; // 位置精度
-                var marker = new AMap.Marker({
-                    icon: "../../static/images/map/poi_active.gif",
-                    position: [longitude, latitude],
-                    // offset: new AMap.Pixel(-13, -30),
-                    // label:markerlabel
-                });
-                markers.push(marker);
-                marker.setMap(map);
-                map.setCenter(longitude, latitude);
-            }
-        });
+            console.log('进入定位')
+            // wx.ready(function() {
+            //     wx.getLocation({
+            //         type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+            //         success: function(res) {
+            //             console.log(res);
+            //             alert(res.data.data.latitude+'位置')
+            //             latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+            //             longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+            //             var speed = res.speed; // 速度，以米/每秒计
+            //             var accuracy = res.accuracy; // 位置精度
+            //             console.log(latitude + ',' + longitude)
+            //             //that.address =longitude+','+latitude
+            //             that.getLIst(longitude,latitude)
+            //             that.addressFun(latitude,longitude)
+            //         },
+            //         fail: function(err) {
+            //         alert("获取定位位置信息失败！")
+            //         },
+            //         cancel: function (res){
+            //         alert('我草')
+            //         }
+            //     });
+            // })
         }
+    
     },
 
     watch: {}
@@ -79,6 +84,7 @@
     width: 100%;
     position: absolute;
     bottom: 0;
+    background: none;
 }
 .buttonBox{
     display: flex;

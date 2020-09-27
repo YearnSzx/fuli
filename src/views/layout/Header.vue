@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div class="headerBox">
     <header>
-      <div  v-for="(item,index) in list" :class="item.class" :key='index' @click="select(index)">
+      <div v-for="(item,index) in list" :class="item.class" :key='index' @click="select(index)">
         <router-link :to="item.url" href="#" id="">{{item.title}}</router-link>
       </div>
     </header>
@@ -26,7 +26,9 @@ export default {
     };
   },
 
-  computed: {},
+  computed: {
+    
+  },
 
   beforeMount() {},
 
@@ -41,6 +43,8 @@ export default {
       this.list.show = sessionStorage.getItem('key')
       // this.list[index].show = true
       this.list[index].class='changeColor'
+      // let a = Math.floor(Math.random()*max)+1;
+      // console.log(a)
     }
   },
 
@@ -50,17 +54,19 @@ export default {
 </script>
 <style scoped>
 .changeColor{
-  border-bottom:2px solid red ;
+  border-bottom:2px solid red;
 }
 div{
   width: 100%;
   z-index: 99;
   background: white;
+  position: relative;
 }
 header{
   width: 100%;
   height: 20%;
   font-size: 0;
+  display: -webkit-box;
   display:flex;
   -webkit-flex-wrap:nowrap;
   -ms-flex-wrap:nowrap;
@@ -70,10 +76,13 @@ header{
   -ms-flex-pack:justify;
   justify-content:space-between;
 }
+
+
+
 header>div{
   width: 25%;
   font-size: 0;
-  display: inline-block;
+  /* display: inline-block; */
 }
 header>div>a{
   color: black;
