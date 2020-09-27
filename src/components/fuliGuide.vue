@@ -136,7 +136,7 @@ export default {
     routerIsShow:function(){
         this.routerShow = !this.routerShow;
     },
-    
+
     positionting:function(index){
         this.audio_url = this.audioList[index].audioUrl
     },
@@ -501,6 +501,7 @@ export default {
     })
     
     this.getLocation()
+        // ni hao 
         // 以下定位可以直接用
         //encodeURIComponent(window.location.href) 动态获取地址
         //'http://pjtdl.piaojingtong.net/' 这个是固定地址，本地调试用
