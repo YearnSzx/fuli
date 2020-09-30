@@ -6,59 +6,9 @@
 </template>
 
 <script>
-import {getPosition} from './utils/index'
-import {getLocation} from './utils/index'
-import wx from 'weixin-js-sdk'
 export default {
   name: 'App',
   components:{},
-   mounted() {
-    // this.$cookie.setCookie('token','8a3f5281266bbcef443ebaecb0764d625464')
-
-    //   getPosition('f986ecacb0d0ecdb426e83084e8d77662543','http://wx2019.piaojingtong.net/')
-    //  .then(res=>{
-    //   //  console.log(res)
-    //   //  wx.config({
-    //   //     debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
-    //   //     appId: res.data.data.appId, // 必填，企业号的唯一标识，此处填写企业号corpid
-    //   //     timestamp: res.data.data.timestamp, // 必填，生成签名的时间戳
-    //   //     nonceStr: res.data.data.nonceStr, // 必填，生成签名的随机串
-    //   //     signature: res.data.data.signature,// 必填，签名，见附录1 
-    //   //     jsApiList: [
-    //   //         // 所有要调用的 API 都要加到这个列表中
-    //   //         'openLocation',
-    //   //         'getLocation'
-    //   //     ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录3
-    //   // });
-      
-    //  })
-    //  .catch((error)=>
-    //   {console.log(error)
-    //  }) 
-    // wx.ready(function(res) {
-    //     wx.getLocation({
-    //         type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
-    //         success(res) {
-    //             console.log(res);
-    //             alert(res.data.data.latitude+'位置')
-    //             latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
-    //             longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
-    //             var speed = res.speed; // 速度，以米/每秒计
-    //             var accuracy = res.accuracy; // 位置精度
-    //             console.log(latitude + ',' + longitude)
-    //             //that.address =longitude+','+latitude
-    //             that.getLIst(longitude,latitude)
-    //             that.addressFun(latitude,longitude)
-    //         },
-    //         fail: function(err) {
-    //           alert("获取定位位置信息失败！")
-    //         },
-    //         cancel: function (res){
-    //           alert('')
-    //         }
-    //     });
-    //   })
-   },
 }
 </script>
 

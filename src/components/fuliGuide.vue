@@ -43,7 +43,8 @@ import {
   getpublicfacilitieslist,
   getpublictypelist,
   getexhibitaudiolist,
-  getWXconfig2020
+  getWXconfig2020,
+  savevisitelog
   } from '@/utils/index'
 import wx from 'weixin-js-sdk'
 import $ from 'jquery'
@@ -54,84 +55,83 @@ export default {
       list:[
         {id:0,title:'景点',class:'changeColor',ptGuid:''},
       ],
-      audioList:[
-
-      ],
-      routerShow:false,
-      audio_url:'',
-      _map:null,
-      nowSite:[],
-      comeSite:[],
-      coords3:[]     //获取一个新的coords
+      audioList:[],             // 音频路径合集
+      routerShow:false,         
+      audio_url:'',             // 音频当前点击的url储存
+      _map:null,                // 获取一个可以随时调用的地图
+      comeSite:[],              // 获取点击marker的坐标
+      coords3:[],               // 获取一个新的coords
+      longitude:'',             // 取出自身定位x的值
+      latitude:'',              // 取出自身定位y的值
+      vlGuid:null,
+      lastExhguid:null
     };
   },
   methods: {
+    // 微信定位以及高德地图步行导航
     getLocation(){
-       let that=this
-       wx.ready(function(res) {
-          wx.getLocation({
-              type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
-              success: function (res){
-                  // alert('进入成功');
-                  console.log(res)
-                  // alert(res.data.data.latitude+'位置')
-                  let latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
-                  let longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
-                  // var speed = res.speed; // 速度，以米/每秒计
-                  // var accuracy = res.accuracy; // 位置精度
-                  // console.log(latitude + ',' + longitude)
-                  // that.address =longitude+','+latitude
-                  // that.getLIst(longitude,latitude)
-                  // that.addressFun(latitude,longitude)
-
-                  var startIcon = new AMap.Icon({ // 创建一个 icon
-                      size: new AMap.Size(25, 38),
-                      image: require('@/assets/map/my_location.png'),
-                      imageSize: new AMap.Size(25, 38),
-                  });
-                  var Label = {
-                      offset: new AMap.Pixel(0, 0),
-                      content: '您当前所在位置',
-                      direction: "top",
-                      anchor:'bottom-center'
-                    };
-                  var startMarker = new AMap.Marker({
-                      // position: new AMap.LngLat(longitude,latitude),
-                      position: new AMap.LngLat(108.38704,22.787328),
-                      icon: startIcon,
-                      // offset: new AMap.Pixel(-13, -30),
-                      label: Label,
-                      animation:'AMAP_ANIMATION_BOUNCE'
-                  });
-                  that._map.add([startMarker]);
-                  //步行导航
-                  alert('55555')
-
-                  // _map.plugin('AMap.Walking',function(){
-                  //   var walking = new AMap.Walking({
-                  //       map: _this._map,
-                  //       panel: "panel"
-                  //   }); 
-                  //   console.log(_this.comeSite)
-                  //   //根据起终点坐标规划步行路线
-                  //   walking.search([longitude, latitude], [that.comeSite[0][0], that.comeSite[0][1]], function(status, result) {
-                  //       // // result即是对应的步行路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_WalkingResult
-                  //       // if (status === 'complete') {
-                  //       //     log.success('绘制步行路线完成')
-                  //       // } else {
-                  //       //     log.error('步行路线数据查询失败' + result)
-                  //       // } 
-                  //   });
-                  // })
-              },
-              fail: function(err) {
-              },
-              cancel: function (res){
-                alert('')
-              }
-          });
-        })
+      let _this=this
+      wx.ready(function(res) {
+        wx.getLocation({
+            type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+            success: function (res){
+              // alert('进入成功');
+              console.log(res)
+              // alert(res.data.data.latitude+'位置')
+              let latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+              let longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+              // var speed = res.speed; // 速度，以米/每秒计
+              // var accuracy = res.accuracy; // 位置精度
+              // console.log(latitude + ',' + longitude)
+              // _this.address =longitude+','+latitude
+              // _this.getLIst(longitude,latitude)
+              // _this.addressFun(latitude,longitude)
+              _this.longitude = longitude
+              _this.latitude = latitude
+              var startIcon = new AMap.Icon({ // 创建一个 icon
+                  size: new AMap.Size(25, 38),
+                  image: require('@/assets/map/my_location.png'),
+                  imageSize: new AMap.Size(25, 38),
+              });
+              var Label = {
+                  offset: new AMap.Pixel(0, 0),
+                  content: '您当前所在位置',
+                  direction: "top",
+                  anchor:'bottom-center'
+                };
+              var startMarker = new AMap.Marker({
+                  // position: new AMap.LngLat(longitude,latitude),
+                  position: new AMap.LngLat(longitude,latitude),
+                  icon: startIcon,
+                  // offset: new AMap.Pixel(-13, -30),
+                  label: Label,
+                  animation:'AMAP_ANIMATION_BOUNCE'
+              });
+              _this._map.add([startMarker]);
+              //步行导航
+              // _this._map.plugin('AMap.Walking',function(){
+              //   _this.walking = new AMap.Walking({
+              //       map: _this._map,
+              //       panel: "panel"
+              //   }); 
+              //   //根据起终点坐标规划步行路线
+              //   _this.walking.search([longitude, latitude], [_this.comeSite[0][0], _this.comeSite[0][1]], function(status, result) {
+              //       // // result即是对应的步行路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_WalkingResult
+              //       // if (status === 'complete') {
+              //       //     log.success('绘制步行路线完成')
+              //       // } else {
+              //       //     log.error('步行路线数据查询失败' + result)
+              //       // } 
+              //   });
+              // })
+          },
+          fail: function(err) {
+            // alert('定位失败')
+          }
+        });
+      })
     },
+    
     // 路线导航的出现
     routerIsShow:function(){
         this.routerShow = !this.routerShow;
@@ -140,16 +140,79 @@ export default {
     positionting:function(index){
         this.audio_url = this.audioList[index].audioUrl
     },
+
+    // 计算停留时间接口
+    savevisite:function(item){
+      // 停留事件
+      let _this = this
+      if(_this.vlGuid != null){
+        let data2={
+          bsGuid:item.bsGuid,
+          bsName:item.bsName,
+          exhGuid:_this.lastExhguid,
+          openid:item.openid,
+          simGuid:item.simGuid,
+          doneFlag:'Update',   // Update
+          type:item.type,
+          vlGuid:item.vlGuid,       // 有值
+        }
+        savevisitelog(data2).then((res)=>{      // doneFlag = Update
+          console.log(res)
+          _this.vlGuid = res.data.data.vlGuid
+        })
+      }
+
+      let data={
+        bsGuid:item.bsGuid,
+        bsName:item.bsName,
+        exhGuid:item.exhGuid,
+        openid:item.openid,
+        simGuid:item.simGuid,
+        doneFlag:'Add',   // Add
+        type:item.type,
+        vlGuid:item.vlGuid,       // ''
+      }
+      _this.lastExhguid = item.exhGuid
+      savevisitelog(data).then((res)=>{      // doneFlag = Update
+        console.log(res)
+        _this.vlGuid = res.data.data.vlGuid
+      })
+      // if(_this.vlGuid == null){
+      //   savevisitelog(bsGuid,bsName,nowData,openId,simGuid,doneFlag,type,vlGuid).then((res)=>{      // doneFlag = Add
+      //     console.log(res)
+      //     _this.vlGuid = res.data.data.vlGuid
+      //   })
+      //   _this.lastExhguid = nowData
+      // }else{
+      // }
+      // let data2 = {
+      //   bsGuid:this.$cookie.getCookie('bsGuid'),
+      //   bsName:this.$cookie.getCookie('bsName'),
+      //   exhGuid:'1d2883d54632ceb84b0c9d2c5038de0d8f44',
+      //   openId:this.$cookie.getCookie('openId'),
+      //   simGuid:'3a0311d6ca94fd37403e99717b1827c06c96',
+      //   doneFlag:'Add',
+      //   type:2,
+      //   vlGuid:''
+      // }
+      // console.log(data2)
+      
+      
+      // savevisitelog(this.$cookie.getCookie('bsGuid'),
+      // this.$cookie.getCookie('bsName'),
+      // '1d2883d54632ceb84b0c9d2c5038de0d8f44',
+      // this.$cookie.getCookie('openId'),
+      // '3a0311d6ca94fd37403e99717b1827c06c96','Add',2,'').then((res)=>{
+      //   console.log(res)
+      // })
+    },
+
     // 循环创建icon
     IconCreate(coords,map,elementExhGuid){
-      // console.log(coords[0][0])
-      // 清除标记点      
-
-      map.clearMap();
+      map.clearMap();                               // 清除标记点     
       
       var endIcon = new AMap.Icon({                 // 创建一个 icon
         size: new AMap.Size(25, 40),
-        // image: '//a.amap.com/jsapi_demos/static/demo-center/icons/dir-marker.png',
         image: require('../assets/map/poi.png'),
         imageSize: new AMap.Size(40, 40),
         imageOffset: new AMap.Pixel(-7, -3)
@@ -164,26 +227,7 @@ export default {
       let oldSiteY = ''
       let markers = []
       let _this = this
-      // console.log(this.audioList)
       coords.forEach((cod,index) => {                // 使用foreach循环添加标记点
-        // console.log(cod)
-        // console.log(cod)
-        // function endIconCreate(torf){ 
-        //   var waitIcon;                            // 创建一个等待标识的icon
-        //   if(torf != undefined){                   // 判断是否有另外标识
-        //     waitIcon = new AMap.Icon({             // 如果有创建一个 icon
-        //         size: new AMap.Size(25, 40),
-        //         // image: '//a.amap.com/jsapi_demos/static/demo-center/icons/dir-marker.png',
-        //         image: require('../assets/map/poi'+torf+'.png'),
-        //         imageSize: new AMap.Size(30, 31),
-        //         imageOffset: new AMap.Pixel(-3, -3)
-        //     });
-        //     return waitIcon
-        //   }else{
-        //     return endIcon
-        //   }
-        // }
-        
         // 旅游景点标注
         var markerlabel = {
           offset: new AMap.Pixel(0,0),
@@ -192,7 +236,6 @@ export default {
         };
         var start = new AMap.Icon({                 // 创建一个 icon
           size: new AMap.Size(25, 40),
-          // image: '//a.amap.com/jsapi_demos/static/demo-center/icons/dir-marker.png',
           image: require('../assets/map/poi.png'),
           imageSize: new AMap.Size(40, 40),
           imageOffset: new AMap.Pixel(-7, -3)
@@ -205,38 +248,58 @@ export default {
             offset: new AMap.Pixel(-13, -30),
             label: markerlabel 
         });
-        map.add([endMarker]);                     // 将 markers 添加到地图
-        markers.push(endMarker)
         
-        AMap.event.addListener(endMarker,'click',function () { //添加点击事件,传入对象名，事件名，回调函数
-            _this.audioList.splice(0,_this.audioList.length)   //清空选择音频数组
+        // 构建信息窗体中显示的内容
+        var info = [];
+        info.push(`
+          <div style=\"padding:7px 0px 0px 0px;\"><h4>${cod[3]}</h4>
+            <p class='input-item'>${cod[4]}</p>
+            <p class='input-item'>${cod[7]}</p>
+          </div>
+        `);
+
+        // 使用默认信息窗体框样式，显示信息内容
+        var infoWindow = new AMap.InfoWindow({
+          content: info.join(""),  
+          offset: new AMap.Pixel(0, -23)
+        });
+
+        map.add([endMarker]);   // 将 markers 添加到地图                  
+        markers.push(endMarker)
+
+        // 判断是否为扫码进入
+        if(this.$cookie.getCookie('exhguid') == cod[0]){
+          endMarker.setIcon(clickIcon)
+          infoWindow.open(map, [cod[2][0],cod[2][1]]);
+          // simguid,exhguid
+          let data = {
+            bsGuid:this.$cookie.getCookie('bsGuid'),
+            bsName:this.$cookie.getCookie('bsName'),
+            exhGuid:cod[0],
+            openid:this.$cookie.getCookie('openid'),
+            simGuid:simguid,
+            // doneFlag:'Add',
+            type:2,
+            vlGuid:_this.vlGuid
+          }
+          // savevisite(data)                                   // 上传
+          _this.audio_url = _this.audioList[0].audioUrl      // 自动播放第一个音乐
+          // savevisite(this.$cookie.getCookie('bsGuid'),this.$cookie.getCookie('bsName'),exhguid,this.$cookie.getCookie('openId'),simGuid,'Add',2,_this.vlGuid,cod)
+          console.log(cod)
+        }
+        AMap.event.addListener(endMarker,'click',function () { // 添加点击事件,传入对象名，事件名，回调函数
+            // 点击进入先清空音频数组
+            _this.audio_url = ''                               // 清除音乐
+            _this.audioList.splice(0,_this.audioList.length)   // 清空选择音频数组
             if(_this.comeSite != ''){
-              _this.comeSite.splice(0,_this.comeSite.length)   //清空之前点击坐标
+              _this.comeSite.splice(0,_this.comeSite.length)   // 清空之前点击坐标
             }
             _this.comeSite.push(cod[2])
-            console.log(cod[2][0],cod[2][1])
-            console.log(cod[2])
-            console.log(_this.comeSite[0],_this.comeSite[1])
 
-            //步行导航
-            // map.plugin('AMap.Walking',function(){
-            //   var walkingOption = {}
-            //   var walking = new AMap.Walking({
-            //       map: _this._map,
-            //       panel: "panel"
-            //   }); 
-            //   //根据起终点坐标规划步行路线
-            //   walking.search([108.382636, 22.790553], [_this.comeSite[0][0], _this.comeSite[0][1]], function(status, result) {
-            //       // result即是对应的步行路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_WalkingResult
-            //       // if (status === 'complete') {
-            //       //     log.success('绘制步行路线完成')
-            //       // } else {
-            //       //     log.error('步行路线数据查询失败' + result)
-            //       // } 
-            //   });
-            // });
+            // 点击图标判断elementExhGuid是否为空
             if(elementExhGuid == '' || elementExhGuid == undefined){
-              getexhibitaudiolist("f986ecacb0d0ecdb426e83084e8d77662543",cod[0]).then((res)=>{
+              // 景点扩展信息表数据列表（语音数据list）
+              getexhibitaudiolist(_this.$cookie.getCookie('bsGuid'),cod[0]).then((res)=>{
                 console.log(res)
                 let audioUrl = res.data.data
                 // audioList
@@ -246,50 +309,12 @@ export default {
                 });
               })
             }
-            // openWindowInfo(cod)  //添加信息窗体
-            //构建信息窗体中显示的内容
-            var info = [];
-            // if(cod[3]){
-                info.push(`
-                <div style=\"padding:7px 0px 0px 0px;\"><h4>活动名称：</h4>
-                  <div>
-                    <img style='width:50px;height:50px' src='${cod[5]}' alt= >
-                  </div>
-                  <p class='input-item'>约需等待:分钟</p>
-                </div>
-                `);
-                info.push("")
-                info.push("");
-                info.push("")
-                
-                info.push("");
-            // }else if(cod[4]){
-            //     info.push("<div style=\"padding:7px 0px 0px 0px;\"><h4>活动名称："+cod[2]+"</h4>");
-            //     info.push("<p class='input-item'>尚未开放</p>");
-            //     info.push("<p class='input-item'>活动时间："+cod[4]+"</p>");
-            //     info.push("</div>");
-            // }else{
-            //     info.push("<div style=\"padding:7px 0px 0px 0px;\">");
-            //     info.push("<p class='input-item'>"+cod[2]+"</p>");
-            //     info.push("</div>");
-            // }
 
-            //使用默认信息窗体框样式，显示信息内容
-            var infoWindow = new AMap.InfoWindow({
-                content: info.join(""),  
-                offset: new AMap.Pixel(0, -23)
-            });
-            // console.log(cod[0])
+            // 信息窗体的打开
             infoWindow.open(map, [cod[2][0],cod[2][1]]);
             
-
-            // 点击地图产生的
-            map.on('click', function(){
-                infoWindow.close()
-            });
-            //点击之后出现的图标
+            // 点击之后marker出现的图标
             endMarker.setIcon(clickIcon)
-
 
             // 改变前一个点击的marker 
             sessionStorage.setItem('siteX',cod[2][0])
@@ -298,83 +323,77 @@ export default {
             let newSiteY = sessionStorage.getItem('siteY')
             let positions = []
             positions.push([parseFloat(newSiteX),parseFloat(newSiteY)])
-            // console.log(positions)
-            // console.log('现在的：'+newSiteX+','+newSiteY)
             if(oldSiteX == '' && oldSiteY == ''){
-                oldSiteX = sessionStorage.getItem('siteX')
-                oldSiteY = sessionStorage.getItem('siteY')
-                // console.log('最开始oldSiteX的坐标：'+oldSiteX+','+oldSiteY)
+              oldSiteX = sessionStorage.getItem('siteX')
+              oldSiteY = sessionStorage.getItem('siteY')
+            }else if(oldSiteX == newSiteX && oldSiteY == newSiteY){
+              alert('332进入成功')
+              oldSiteX = newSiteX
+              oldSiteY = newSiteY
             }else{
-                // console.log('最后的坐标：'+oldSiteX+','+oldSiteY)
-                positions.push([parseFloat(oldSiteX),parseFloat(oldSiteY)])
-                // console.log(positions)
-                if(positions.length > 1){
-                  coords.forEach((cod,index1) => {                                    // 创建对比循环，获取最初数据源coords
-                    // console.log(cod[0],positions[1])
-                    if(cod[2][0] == positions[1][0] && cod[2][1] == positions[1][1]){     // 对比合适获得下标
-                      // console.log('比较完以后')
-                      markers[index1].setIcon(start)                // 得到上一个点击的marker下标后，为此下标的marker重新给一个icon
-                    }
-                  });
-                }
-                oldSiteX = newSiteX
-                oldSiteY = newSiteY
+              positions.push([parseFloat(oldSiteX),parseFloat(oldSiteY)])
+              if(positions.length > 1){                                                 // 判断positions长度是否大于1
+                coords.forEach((cod,index1) => {                                        // 创建对比循环，获取最初数据源coords
+                  if(cod[2][0] == positions[1][0] && cod[2][1] == positions[1][1]){     // 对比合适获得下标
+                    markers[index1].setIcon(start)                                      // 得到上一个点击的marker下标后，为此下标的marker重新给一个icon
+                  }
+                });
+              }
+              oldSiteX = newSiteX
+              oldSiteY = newSiteY
             }
             // 点击之后成为地图中心点
             // map.setCenter([cod[0],cod[1]])
         })  
-        //点击事件的结束
-
-        // map.plugin('AMap.Walking',function(){
-        //   //步行导航
-        //   var walking = new AMap.Walking({
-        //       map: map,
-        //       panel: "panel"
-        //   }); 
-        //   //根据起终点坐标规划步行路线
-        //   walking.search([110.05595,18.451149], [110.055945,18.449953], function(status, result) {
-        //       // result即是对应的步行路线数据信息，相关数据结构文档请参考  https://lbs.amap.com/api/javascript-api/reference/route-search#m_WalkingResult
-        //       if (status === 'complete') {
-        //           // log.success('绘制步行路线完成')
-        //       } else {
-        //           // log.error('步行路线数据查询失败' + result)
-        //       } 
-        //   });
-        //  });
-        
-
-        // AMap.service('AMap.Walking',function(){
-        //   let MWalk = new AMap.Walking({
-        //     map : map
-        //   })
-        //   MWalk.search([110.059519,18.453242], [110.060826,18.455729], function(status, result) {})
-        // })
+        // 点击事件的结束
+        // 点击地图产生的效果，
+        map.on('click', function(){
+          infoWindow.close()
+          endMarker.setIcon(start)
+          let data = {
+            bsGuid:this.$cookie.getCookie('bsGuid'),
+            bsName:this.$cookie.getCookie('bsName'),
+            exhGuid:cod[0],
+            openid:this.$cookie.getCookie('openid'),
+            simGuid:simguid,
+            // doneFlag:'Update',
+            type:2,
+            vlGuid:_this.vlGuid
+          }
+          // savevisite(data)
+        });
       });
         
     },
-    select:function(index){
+    
+    // 点击导航栏
+    select:function(index){     
       this.list.forEach(e => {
         e.class=''
       });
       sessionStorage.setItem('key',false);
       this.list.show = sessionStorage.getItem('key')
-      // this.list[index].show = true
       this.list[index].class='changeColor'
       let exhGuid = this.list[index].ptGuid
-      // console.log(this.list[index].ptGuid)
       let _this = this
-      if(exhGuid == ''){
+      // 判断它是否为空，为空就是点击的顶部景点
+      if(exhGuid == ''){   
         console.log(_this.coords3)
         _this.IconCreate(_this.coords3,_this._map,exhGuid)
       }else{
+        _this.audio_url = ''                               // 清空音乐路径，关闭音乐
+        _this.audioList.splice(0,_this.audioList.length)   // 清空选择音频数组
+        // 获取公共设施数据列表
         getpublicfacilitieslist(this.$cookie.getCookie("bsGuid"),exhGuid,this.$cookie.getCookie("simGuid")).then((res)=>{
           console.log(res.data.code)
           let publicfacilities = res.data.data
           let coords2 = []
           if(res.data.code == 200){
+            // 添加不同导航下的marker信息
             publicfacilities.forEach((pt,index) => {
               coords2.push([pt.pfGuid,pt.bsGuid,pt.coordinate.split(',').map(Number),pt.pfName,'pt.opentime',pt.pfImg,'pt.actName',])
             });
+            // 新建marker传入exhGuid值判断是否在景点内,如果不是则为空
             _this.IconCreate(coords2,_this._map,exhGuid)
             console.log(coords2)
           }
@@ -383,7 +402,7 @@ export default {
       }
     }
   },
-  beforeCreate(){
+  beforeCreate(){               // 微信权限注入
       let data={
         bsCode: this.$cookie.getCookie("bsCode"),
         url: window.location.href.split("#")[0]
@@ -392,7 +411,7 @@ export default {
       getWXconfig2020(data).then((res)=>{
         console.log(res)
         wx.config({
-            debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
             appId: res.data.data.appId, // 必填，企业号的唯一标识，此处填写企业号corpid
             timestamp: res.data.data.timestamp, // 必填，生成签名的时间戳
             nonceStr: res.data.data.nonceStr, // 必填，生成签名的随机串
@@ -404,20 +423,6 @@ export default {
             ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录3
         });
         //"errMsg":"getLocation:invalid signature"
-        // wx.ready(function(res) {
-        //   wx.getLocation({
-        //       type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
-        //       success: function (res){
-        //           alert('进入成功');
-        //           console.log(res,999999999999999)
-        //       },
-        //       fail: function(err) {
-        //         alert('进入失败a');
-        //       },
-        //       cancel: function (res){
-        //       }
-        //   });
-        // });
         wx.error(function(res){
           // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
           console.log(res)
@@ -425,33 +430,27 @@ export default {
       })
   },
   mounted(){
-    // 中心点坐标：defaultCoordinate
-    // 锁定坐标左上：leftUpCorner
-    // 锁定坐标右下：rightDwCorner
-    // 地图图片：proMap
-    
-    // let bsGuid = 'f986ecacb0d0ecdb426e83084e8d77662543' //商家唯一标识
     let _this = this
+    // 查询地图信息（包括地图信息，地图内景点信息，地图内公共设施信息，默认点位坐标）
     getsitemapdetail(this.$cookie.getCookie("bsGuid")).then((res)=>{
+      console.log(res)  
+
       let mapData = res.data.data
       let siteMap = mapData.siteMap
       let exhibitLists = mapData.exhibitList
-      console.log('第一个地图的接口getsitemapdetail：')
-      console.log(res)
       this.$cookie.setCookie("simGuid",siteMap.simGuid)
-      let coords = []               //创建数组接收需要内容
+      let coords = []                   // 创建数组接收需要内容
       exhibitLists.forEach((ex,index) => {
-        coords.push([ex.exhGuid,ex.bsGuid,ex.coordinate.split(',').map(Number),ex.exhName,ex.opentime,ex.headerUrl,ex.actName,])
-        _this.coords3.push([ex.exhGuid,ex.bsGuid,ex.coordinate.split(',').map(Number),ex.exhName,ex.opentime,ex.headerUrl,ex.actName,])
+        coords.push([ex.exhGuid,ex.bsGuid,ex.coordinate.split(',').map(Number),ex.exhName,ex.opentime,ex.headerUrl,ex.actName,ex.details])
+        _this.coords3.push([ex.exhGuid,ex.bsGuid,ex.coordinate.split(',').map(Number),ex.exhName,ex.opentime,ex.headerUrl,ex.actName,ex.details])
       });
 
       let defaultCoordinate = mapData.defaultCoordinate.split(',').map(Number)  // 中心点坐标，中心点坐标转化数字
-      let leftUpCorner = siteMap.leftUpCorner.split(',').map(Number)   //锁定左上
-      let rightDwCorner = siteMap.rightDwCorner.split(',').map(Number)   //锁定右下
-      // 接受中心点坐标
-
-      let lockSite = [siteMap.leftUpCorner,siteMap.rightDwCorner]  //  锁定点坐标
-      // createIcons(defaultCoordinate,coords,this.imageUrl,leftUpCorner,rightDwCorner)
+      let leftUpCorner = siteMap.leftUpCorner.split(',').map(Number)            // 锁定左上
+      let rightDwCorner = siteMap.rightDwCorner.split(',').map(Number)          // 锁定右下
+      let lockSite = [siteMap.leftUpCorner,siteMap.rightDwCorner]               // 锁定点坐标
+      // 更改头部标识
+      document.title=siteMap.proName    
 
 
       // 开始地图~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~分割线
@@ -475,6 +474,8 @@ export default {
               imageLayer
           ]
       });
+      // 定位
+      _this.getLocation()
 
       // 锁定边界
       function lockBounds() {
@@ -488,70 +489,34 @@ export default {
       //强制设置层级,必须设置于锁定了边界之后
       _this._map.setFitView();
       _this._map.setZoom(16);
+
+      // 创建图标
       this.IconCreate(coords,_this._map)
-    }).catch((e) => {});
-      //  顶部图标
+    })
+    .catch((e) => {});
+
+    // 顶部图标的创建
     getpublictypelist(this.$cookie.getCookie("bsGuid")).then((res)=>{
       let topIcons = res.data.data
-      console.log('图标接口')
-      console.log(res)
       topIcons.forEach((topicon,index) => {                                                  // 循环给list添加元素
         this.list.push({id:topicon.id,title:topicon.title,class:"",ptGuid:topicon.ptGuid})   // 添加到list里让顶部导航自动生成
       });
     })
     
-    this.getLocation()
-        // ni hao 
-        // 以下定位可以直接用
-        //encodeURIComponent(window.location.href) 动态获取地址
-        //'http://pjtdl.piaojingtong.net/' 这个是固定地址，本地调试用
-      //   let data = {
-      //     bsCode:this.$cookie.getCookie("bsCode"),
-      //     url:window.location.href.split("#")[0]
-      //   }
-      //   getWXconfig2020(data).then(res=>{  // 改本地调试记得改地址
-      //   console.log(res)
-      //     wx.config({
-      //       debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
-      //       appId: res.data.data.appId, // 必填，企业号的唯一标识，此处填写企业号corpid
-      //       timestamp: res.data.data.timestamp, // 必填，生成签名的时间戳
-      //       nonceStr: res.data.data.nonceStr, // 必填，生成签名的随机串
-      //       signature: res.data.data.signature,// 必填，签名，见附录1 
-      //       jsApiList: [
-      //           // 所有要调用的 API 都要加到这个列表中
-      //           'openLocation',
-      //           'getLocation'
-      //       ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录3
-      //     });
-      //     wx.ready(function(res) {
-      //       wx.getLocation({
-      //         type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
-      //         success(res) {
-      //             alert('进入成功');
-      //             console.log(res)
-      //             // // alert(res.data.data.latitude+'位置')
-      //             // let latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
-      //             // let longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
-      //             // var speed = res.speed; // 速度，以米/每秒计
-      //             // var accuracy = res.accuracy; // 位置精度
-      //             // console.log(latitude + ',' + longitude)
-      //             // //that.address =longitude+','+latitude
-      //             // that.getLIst(longitude,latitude)
-      //             // that.addressFun(latitude,longitude)
-      //         },
-      //         fail: function(err) {
-      //           alert("获取定位位置信息失败！")
-      //         },
-      //         cancel: function (res){
-      //           alert('')
-      //         }
-      //     });
-      //   })
-      //   wx.error(function(res){
-      //     console.log(res)
-      //     // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
-      //   });
-      // }) 
+    let data2 = {
+        bsGuid:this.$cookie.getCookie('bsGuid'),
+        bsName:this.$cookie.getCookie('bsName'),
+        exhGuid:'1d2883d54632ceb84b0c9d2c5038de0d8f44',
+        openid:this.$cookie.getCookie('openId'),
+        simGuid:'3a0311d6ca94fd37403e99717b1827c06c96',
+        doneFlag:'Add',
+        type:2,
+        vlGuid:''
+      }
+      console.log(data2)
+    savevisitelog(data2).then((res)=>{      // doneFlag = Update
+      console.log(res)
+    })
   }
 };
 </script>

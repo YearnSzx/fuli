@@ -35,3 +35,19 @@ instanceFuli.interceptors.response.use(
         return Promise.reject(error);
     }
 )
+
+export let adsad = '192.168.2.55:7101/'
+export let inst = axios.create({    //instanceFuli是自己创建的方法
+    baseURL: adsad,
+    headers: {'Token':getCookie('token'),'flags':'wx'},
+    withCredentials: true, // 允许携带cookie
+    timeout: 15000 // 请求超时时间
+});
+instanceFuli.interceptors.response.use(
+    response => {
+        return response;
+    },
+    error => {
+        return Promise.reject(error);
+    }
+)
