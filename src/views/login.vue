@@ -82,5 +82,7 @@ import wx from 'weixin-js-sdk'
 
 </script>
 <style  scoped>
-
+.avc{
+    line-height: ;
+}
 </style>

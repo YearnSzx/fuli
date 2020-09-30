@@ -12,18 +12,19 @@
           Your browser does not support the audio element.
       </audio>
     </section>
+
     <div class="foot">
       <div class="buttonBox">
-          <div class="audioImg">
-              <div v-for="(item,index) in audioList" :key="index" @click="positionting(index)">
-                  <img src="@/assets/map/male_def.png" alt="">
-              </div>
-          </div>
-          <div class="routerImg">
-              <div class="rouImg" @click="routerIsShow()">
-                  <img src='@/assets/map/route_zh.png' alt="">
-              </div>
-          </div>
+        <div class="routerImg">
+            <div class="rouImg" @click="routerIsShow()">
+                <img src='@/assets/map/route_zh.png' alt="">
+            </div>
+        </div>
+        <div class="audioImg" @click="audioIsShow()" v-show="guildIsShow">
+            <div>
+                <img src="@/assets/map/guide_zh.png" alt="">
+            </div>
+        </div>
       </div>
 
       <div class="Router" v-show="routerShow">
@@ -33,7 +34,18 @@
           </div>
           <div class="routerShowBack"></div>
       </div>
+
+      <div class="audioChoose" v-show="audioShow">
+        <div v-for="(item,index) in audioList" :key="index" @click="positionting(index)">
+            <img src="@/assets/map/male_def.png" alt="">
+        </div>
+        <div class="audioCloseImg" @click="audioClose()">
+          <img src="@/assets/map/voice_close.png" alt="">
+        </div>
+        <div class="audioShowBack"></div>
+      </div>
     </div>
+
   </div>
 </template>
 
@@ -56,7 +68,9 @@ export default {
         {id:0,title:'景点',class:'changeColor',ptGuid:''},
       ],
       audioList:[],             // 音频路径合集
-      routerShow:false,         
+      routerShow:false,   
+      audioShow:false,
+      guildIsShow:false,      
       audio_url:'',             // 音频当前点击的url储存
       _map:null,                // 获取一个可以随时调用的地图
       comeSite:[],              // 获取点击marker的坐标
@@ -64,7 +78,8 @@ export default {
       longitude:'',             // 取出自身定位x的值
       latitude:'',              // 取出自身定位y的值
       vlGuid:null,
-      lastExhguid:null
+      lastExhguid:null,
+      infoWindow:''
     };
   },
   methods: {
@@ -136,7 +151,13 @@ export default {
     routerIsShow:function(){
         this.routerShow = !this.routerShow;
     },
-
+    audioIsShow:function(){
+      this.infoWindow.close()
+      this.audioShow = !this.audioShow;
+    },
+    audioClose:function(){
+      this.audioShow = !this.audioShow;
+    },
     positionting:function(index){
         this.audio_url = this.audioList[index].audioUrl
     },
@@ -249,20 +270,7 @@ export default {
             label: markerlabel 
         });
         
-        // 构建信息窗体中显示的内容
-        var info = [];
-        info.push(`
-          <div style=\"padding:7px 0px 0px 0px;\"><h4>${cod[3]}</h4>
-            <p class='input-item'>${cod[4]}</p>
-            <p class='input-item'>${cod[7]}</p>
-          </div>
-        `);
-
-        // 使用默认信息窗体框样式，显示信息内容
-        var infoWindow = new AMap.InfoWindow({
-          content: info.join(""),  
-          offset: new AMap.Pixel(0, -23)
-        });
+        
 
         map.add([endMarker]);   // 将 markers 添加到地图                  
         markers.push(endMarker)
@@ -270,7 +278,7 @@ export default {
         // 判断是否为扫码进入
         if(this.$cookie.getCookie('exhguid') == cod[0]){
           endMarker.setIcon(clickIcon)
-          infoWindow.open(map, [cod[2][0],cod[2][1]]);
+          _this.infoWindow.open(map, [cod[2][0],cod[2][1]]);
           // simguid,exhguid
           let data = {
             bsGuid:this.$cookie.getCookie('bsGuid'),
@@ -295,7 +303,7 @@ export default {
               _this.comeSite.splice(0,_this.comeSite.length)   // 清空之前点击坐标
             }
             _this.comeSite.push(cod[2])
-
+            _this.audioShow = true
             // 点击图标判断elementExhGuid是否为空
             if(elementExhGuid == '' || elementExhGuid == undefined){
               // 景点扩展信息表数据列表（语音数据list）
@@ -310,8 +318,23 @@ export default {
               })
             }
 
+            // 构建信息窗体中显示的内容
+            var info = [];
+            info.push(`
+              <div style=\"padding:7px 0px 0px 0px;\">
+                <h3 style="line-height:2.5rem;">${cod[3]}</h3>
+                <p style="line-height:2rem;">开放时间：${cod[4]}</p>
+                <p>${cod[7]}</p>
+              </div>
+            `);
+
+            // 使用默认信息窗体框样式，显示信息内容
+            _this.infoWindow = new AMap.InfoWindow({
+              content: info.join(""),  
+              offset: new AMap.Pixel(0, -23)
+            });
             // 信息窗体的打开
-            infoWindow.open(map, [cod[2][0],cod[2][1]]);
+            _this.infoWindow.open(map, [cod[2][0],cod[2][1]]);
             
             // 点击之后marker出现的图标
             endMarker.setIcon(clickIcon)
@@ -348,7 +371,7 @@ export default {
         // 点击事件的结束
         // 点击地图产生的效果，
         map.on('click', function(){
-          infoWindow.close()
+          _this.infoWindow.close()
           endMarker.setIcon(start)
           let data = {
             bsGuid:this.$cookie.getCookie('bsGuid'),
@@ -532,15 +555,9 @@ export default {
 .changeColor{
   border-bottom:2px solid red;
 }
-div{
-  width: 100%;
-  z-index: 99;
-  background: white;
-  /* position: relative; */
-}
 header{
   width: 100%;
-  height: 20%;
+  height: 3.5rem;
   font-size: 0;
   display: -webkit-box;
   display:flex;
@@ -556,9 +573,11 @@ header{
 
 
 header>div{
-  /* width: 25%; */
+  width: 25%;
   font-size: 0;
   /* display: inline-block; */
+  z-index: 99;
+  background: white;
 }
 header>div>a{
   color: black;
@@ -593,11 +612,11 @@ header>div>a{
   background: none;
 }
 .audioImg{
-    margin-left: 4%;
+    margin-right: 4%;
     margin-bottom: 1%; 
 }
 .routerImg{
-    margin-right: 4%;
+    margin-left: 4%;
     margin-bottom: 1%;
 }
 .routerImg>div{
@@ -646,5 +665,4 @@ header>div>a{
     line-height: 47px;
     font-size: 13px;
 }
-
 </style>
